@@ -7,14 +7,17 @@ FrontendUserProfilesPW Installation & Configuration
 	at the beginning of file *head.inc*
 3. Add 
 	
-	<pre><code>if ($page->renderLogoutForm()) echo "<li>".$page->renderLogoutForm()."</li>";</code></pre>
+	<pre><code>if ($page->renderLogoutForm()) echo "&lt;li&gt;".$page->renderLogoutForm()."&lt;/li&gt;";</code></pre>
 	after 
 
-	<pre><code>echo "<li><a$class href='{$child->url}'>{$child->title}</a></li>"; \n }</code></pre>
+	<pre><code>
+		echo "&lt;li&gt;&lt;a$class href='{$child->url}'&gt;{$child->title}&lt;/a&gt;&lt;/li&gt;";
+	}
+	</code></pre>
 4. Add 
 	<pre><code>
 	<?php if ($message = $page->getMessage()): ?>
-    	<p style="color:<?php echo $message['type'] ?>;"><?php echo $message['content']; ?></p>
+    	&lt;p style="color:<?php echo $message['type'] ?>;"&gt;<?php echo $message['content']; ?>&lt;/p&gt;
     <?php endif; ?>
 	
 	<?php echo $page->renderLoginForm(); ?>
@@ -22,7 +25,7 @@ FrontendUserProfilesPW Installation & Configuration
 	after
 	
 	<pre><code>
-	<div id="bodycopy">
+	&lt;div id="bodycopy"&gt;
 	</code></pre>
 
 
