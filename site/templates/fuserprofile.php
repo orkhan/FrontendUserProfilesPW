@@ -17,8 +17,11 @@ $fup->actionLogin(); // login action
 $fup->actionLogout(); // logout action
 $fup->actionReset(); // reset action
 $fup->actionRegister(); // register action
+$fup->actionProfileEdit(); // profile edit action
 
+echo $fup->renderProfile();
 echo $fup->renderRegistrationForm();
+echo $fup->renderProfileEditForm();
 
 echo $page->body;
 

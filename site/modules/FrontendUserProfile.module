@@ -14,6 +14,8 @@
 
 class FrontendUserProfile extends WireData implements Module {
 
+    private static $gender = array(1 => 'Male', 2 => 'Female');
+
 	/**
 	 * getModuleInfo is a module required by all modules to tell ProcessWire about them
 	 *
@@ -264,8 +266,8 @@ class FrontendUserProfile extends WireData implements Module {
 
                 $name = $this->sanitizer->name($this->input->post->name);
                 $email = $this->sanitizer->email($this->input->post->email);
-                $pass = $this->sanitizer->name($this->input->post->pass);
-                $pass2 = $this->sanitizer->name($this->input->post->pass2);
+                $pass = $this->sanitizer->text($this->input->post->pass);
+                $pass2 = $this->sanitizer->text($this->input->post->pass2);
                 $fullname = $this->sanitizer->text($this->input->post->fullname);
                 $birthdate = $this->sanitizer->text($this->input->post->birthdate);
                 $gender = $this->sanitizer->text($this->input->post->gender);
@@ -319,11 +321,131 @@ class FrontendUserProfile extends WireData implements Module {
      * @return string Returns the login form HTML code.
      */
     public function ___renderProfileEditForm($options = array()) {
-        return true;
+        if($this->user->isLoggedin() && $this->input->urlSegment1 == 'edit' && $this->user->hasPermission('profile-edit')) {
+
+            $profile_edit_form_html = "
+            <script type='text/javascript'>
+            $(document).ready(function(){
+                $('select#gender').val(".$this->user->gender.");
+                $('input#email').change(function(){
+                    if (IsEmail($(this).val())) {
+                        var email = $(this).val();
+
+                        $.ajax({
+                          type: 'POST',
+                          url: '/profile/ajax/',
+                          data: ({email : email}),
+                          success: function(data){
+                            alert(data);
+                          }
+                        });
+
+                    }
+                });
+            });
+            function IsEmail(email) {
+                var regex = /^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+                return regex.test(email);
+            }
+            </script>";
+            $profile_edit_form_html .= "<form action='/profile/edit/' method='post'>".
+                "    <p><label><b>Username:</b> ".$this->user->name."</label></p>".
+                "    <p><label><b>Email:</b> <input type='text' id='email' name='email' value='".$this->user->email."' /></label></p>".
+                "    <p><label><b>Fullname</b> <input type='text' name='fullname' value='".$this->user->fullname."' /></label></p>".
+                "    <p><label><b>Birthdate</b> <input type='text' name='birthdate' placeholder='YYYY-mm-dd' value='".date('Y-m-d',$this->user->birthdate)."' /></label></p>".
+                "    <p><label><b>Gender</b> <select id='gender' name=\"gender\">
+							<option value=\"\"></option>
+							<option value=\"1\">Male</option>
+							<option value=\"2\">Female</option>
+						</select></label></p>".
+                "    <p>&nbsp;</p><p><label>change password?</b> <input type='checkbox' name='change_password' value='yes' /></label></p>".
+                "    <p><label><b>Password*</b> <input type='password' name='pass' /></label></p>".
+                "    <p><label><b>Repeat Password*</b> <input type='password' name='pass2' /></label></p>".
+                "    <p><input type='submit' name='submit' value='edit' /></p>".
+                "</form>";
+
+            return $profile_edit_form_html;
+        }
     }
 
-    public function ___actionProfile() {
+    public function ___actionProfileEdit($options = array()) {
+        if($this->user->isLoggedin() &&
+           $this->input->urlSegment1 == 'edit' &&
+           $this->user->hasPermission('profile-edit') &&
+           $this->sanitizer->name($this->input->post->submit)) {
 
+            $name = $this->user->name;
+            $email = $this->sanitizer->email($this->input->post->email);
+
+            $change_password = $this->sanitizer->name($this->input->post->change_password);
+            $pass = $this->sanitizer->text($this->input->post->pass);
+            $pass2 = $this->sanitizer->text($this->input->post->pass2);
+
+            $fullname = $this->sanitizer->text($this->input->post->fullname);
+            $birthdate = $this->sanitizer->text($this->input->post->birthdate);
+            $gender = $this->sanitizer->text($this->input->post->gender);
+
+            $this->user->email = $email;
+            $this->user->fullname = $fullname;
+            $this->user->birthdate = $birthdate . " 00:00:00";
+            $this->user->gender = $gender;
+
+            if ($change_password) {
+                if ($pass == $pass2) {
+                    $this->user->pass = $pass;
+                    $this->user->save();
+
+                    if ($this->session) {
+                        $this->session->logout();
+                    }
+
+                    $this->session->login($name, $pass);
+                } else {
+                    $this->session->message_content = 'Passwords is not match.';
+                    $this->session->message_type = 'error';
+                    $this->session->redirect($this->page->path.'edit/');
+                }
+            } else {
+                $this->user->save();
+            }
+
+            $this->session->message_content = 'Your profile edited.';
+            $this->session->message_type = 'success';
+            $this->session->redirect($this->page->path);
+
+        }
+    }
+
+    public function ___renderProfile() {
+        if($this->user->isLoggedin() && !$this->input->urlSegment1) {
+            $profile_html = "
+            <h3>".$this->user->name."</h3>
+            <div style='float:left;width:200px;'>
+                <div style='width: 180px;height: 40px;background: #222222;text-align: center;'>
+                    <p><img src='/site/templates/styles/images/logo.gif' /></p>
+                    <p>no avatar</p>
+                </div>
+            </div>
+            <div style='float:left;width:400px;'>
+                <p>Email: ".$this->user->email."</p>
+                <p>Fullname: ".$this->user->fullname."</p>
+                <p>Birthdate: ".date('Y-m-d',$this->user->birthdate)."</p>
+                <p>Gender: ".self::$gender[$this->user->gender]."</p>
+                <p>&nbsp;</p>
+            ";
+
+            if ($this->user->hasPermission('profile-edit')) {
+                $profile_html .= "
+                <p><a href='/profile/edit/'>edit profile</a></p>
+                ";
+            }
+
+            $profile_html .= "
+            </div>
+            ";
+
+            return $profile_html;
+        }
     }
 
     public function ___getMessage($event) {
