@@ -1,7 +1,13 @@
 <?php
 
 /**
- * ProcessWire FrontendUserProfile module
+ * FrontendUserProfile module
+ *
+ * This module provides to users to create their profiles on PW
+ *
+ * @author Orkhan Maharramli <orkhan.maharramli@gmail.com>
+ * @copyright Copyright (c) 2013, Orkhan Maharramli
+ * @link http://www.webber.az
  * 
  * ProcessWire 2.x 
  * Copyright (C) 2010 by Ryan Cramer 
@@ -14,21 +20,28 @@
 
 class FrontendUserProfile extends WireData implements Module {
 
-    private static $gender = array(1 => 'Male', 2 => 'Female');
+    /**
+     * Returns gender type
+     *
+     * @static
+     * @return string
+     */
+    private static $gender = array(
+        1 => 'Male',
+        2 => 'Female'
+    );
 
 	/**
-	 * getModuleInfo is a module required by all modules to tell ProcessWire about them
-	 *
+     *
 	 * @return array
-	 *
 	 */
 	public static function getModuleInfo() {
 
 		return array(
 			'title' => 'FrontendUserProfile',
 			'version' => 100,
-			'summary' => 'Provides bla bla.',
-			'href' => 'http://www.webber.az',
+			'summary' => 'This module provides to users to create their profiles on PW',
+			'href' => 'https://github.com/orkhan/FrontendUserProfilesPW',
             'permanent' => false,
 			'singular' => true,
 			'autoload' => true,
@@ -39,11 +52,8 @@ class FrontendUserProfile extends WireData implements Module {
 	}
 
 	/**
+     *
 	 * Initialize the module
-	 *
-	 * ProcessWire calls this when the module is loaded. For 'autoload' modules, this will be called
-	 * when ProcessWire's API is ready. As a result, this is a good place to attach hooks. 
-	 *
 	 */
 	public function init() {
 
@@ -54,11 +64,9 @@ class FrontendUserProfile extends WireData implements Module {
 	}
 
     /**
-     * Renders Login form.
+     * Renders Login form
      *
-     * @param mixed[] $options template block.
-     *
-     * @return string Returns the login form HTML code.
+     * @return string
      */
     public function ___renderLoginForm($event) {
         if(!$this->user->isLoggedin() && $this->input->urlSegment1 != 'reset' && $this->input->urlSegment1 != 'register') {
@@ -74,9 +82,12 @@ class FrontendUserProfile extends WireData implements Module {
         }
     }
 
+    /**
+     *
+     * @todo Login action
+     */
     public function ___actionLogin() {
         if ($this->input->urlSegment1 == 'login') {
-            // check for login before outputting markup
             if($this->input->post->user && $this->input->post->pass) {
 
                 if($this->user->isLoggedin()) {
@@ -95,7 +106,7 @@ class FrontendUserProfile extends WireData implements Module {
                     $this->session->redirect("/");
                 } else {
                     // login unsuccessful
-                    $this->session->message_content = 'Login/Password didnt match. Please try again.';
+                    $this->session->message_content = 'Password did not match that for the login provided. Please try again.';
                     $this->session->message_type = 'error';
                     $this->session->redirect("/");
                 }
@@ -104,11 +115,10 @@ class FrontendUserProfile extends WireData implements Module {
     }
 
     /**
-     * Renders Login form.
+     * Renders Password Reset form.
      *
-     * @param mixed[] $options template block.
-     *
-     * @return string Returns the login form HTML code.
+     * @param mixed[] $options
+     * @return string
      */
     public function ___renderPasswordResetForm($options = array()) {
         $password_reset_form_html = "
@@ -122,12 +132,13 @@ class FrontendUserProfile extends WireData implements Module {
         return $password_reset_form_html;
     }
 
+    /**
+     *
+     * @todo Password Reset action
+     */
     public function ___actionReset() {
-
         if ($this->input->urlSegment1 == 'reset') {
-
             if(!$this->user->isLoggedin()) {
-
                 $email = $this->sanitizer->email($this->input->post->email);
                 if($email) {
                     $u = $this->users->get("email=$email");
@@ -155,29 +166,28 @@ class FrontendUserProfile extends WireData implements Module {
                 } else {
                     echo $this->___renderPasswordResetForm();
                 }
-
             } else {
-                $this->session->message_content = 'You are already logged in. To reset password you must log out.';
+                $this->session->message_content = 'You are already logged in. To reset password you must logout.';
                 $this->session->message_type = 'error';
                 $this->session->redirect('/');
             }
-
         }
-
     }
 
     /**
      * Renders Logout form.
      *
-     * @param mixed[] $options template block.
-     *
-     * @return string Returns the logout form HTML code.
+     * @return string
      */
     public function ___renderLogoutForm($event) {
         if($this->user->isLoggedin())
             $event->return = '<a href="/profile/logout/">Logout</a>';
     }
 
+    /**
+     *
+     * @todo Logout action
+     */
     public function ___actionLogout() {
         if ($this->input->urlSegment1 == 'logout') {
             if($this->user->isLoggedin()) $this->session->logout();
@@ -189,11 +199,10 @@ class FrontendUserProfile extends WireData implements Module {
 
 
     /**
-     * Renders Login form.
+     * Renders Registration form.
      *
-     * @param mixed[] $options template block.
-     *
-     * @return string Returns the login form HTML code.
+     * @param mixed[] $options
+     * @return string
      */
     public function ___renderRegistrationForm($options = array()) {
         if(!$this->user->isLoggedin() && $this->input->urlSegment1 == 'register') {
@@ -259,11 +268,13 @@ class FrontendUserProfile extends WireData implements Module {
         }
     }
 
+    /**
+     *
+     * @todo Register action
+     */
     public function ___actionRegister() {
         if (!$this->user->isLoggedin() && $this->input->urlSegment1 == 'register') {
-
             if ($this->sanitizer->name($this->input->post->submit)) {
-
                 $name = $this->sanitizer->name($this->input->post->name);
                 $email = $this->sanitizer->email($this->input->post->email);
                 $pass = $this->sanitizer->text($this->input->post->pass);
@@ -279,7 +290,6 @@ class FrontendUserProfile extends WireData implements Module {
                 }
 
                 if ($name && $email && $pass) {
-
                     $u = new User();
                     $u->name = $name;
                     $u->pass = $pass;
@@ -300,25 +310,20 @@ class FrontendUserProfile extends WireData implements Module {
                     $this->session->message_content = 'Successfully registered and logged in.';
                     $this->session->message_type = 'success';
                     $this->session->redirect($this->page->path.'register/');
-
                 } else {
                     $this->session->message_content = 'Username or Mail is not entered.';
                     $this->session->message_type = 'error';
                     $this->session->redirect($this->page->path.'register/');
                 }
-
             }
-
         }
-
     }
 
     /**
-     * Renders Login form.
+     * Renders Profile Edit form.
      *
-     * @param mixed[] $options template block.
-     *
-     * @return string Returns the login form HTML code.
+     * @param mixed[] $options
+     * @return string
      */
     public function ___renderProfileEditForm($options = array()) {
         if($this->user->isLoggedin() && $this->input->urlSegment1 == 'edit' && $this->user->hasPermission('profile-edit')) {
@@ -369,12 +374,16 @@ class FrontendUserProfile extends WireData implements Module {
         }
     }
 
+    /**
+     *
+     * @todo Profile Edit action
+     */
     public function ___actionProfileEdit($options = array()) {
-        if($this->user->isLoggedin() &&
-           $this->input->urlSegment1 == 'edit' &&
-           $this->user->hasPermission('profile-edit') &&
-           $this->sanitizer->name($this->input->post->submit)) {
-
+        if( $this->user->isLoggedin() &&
+            $this->input->urlSegment1 == 'edit' &&
+            $this->user->hasPermission('profile-edit') &&
+            $this->sanitizer->name($this->input->post->submit)
+        ) {
             $name = $this->user->name;
             $email = $this->sanitizer->email($this->input->post->email);
 
@@ -424,11 +433,16 @@ class FrontendUserProfile extends WireData implements Module {
             $this->session->message_content = 'Your profile edited.';
             $this->session->message_type = 'success';
             $this->session->redirect($this->page->path);
-
         }
     }
 
-    public function ___renderProfile() {
+    /**
+     * Renders Profile
+     *
+     * @param mixed[] $options
+     * @return string
+     */
+    public function ___renderProfile($options = array()) {
         if($this->user->isLoggedin() && !$this->input->urlSegment1) {
             $avatar = "/site/templates/styles/images/no-avatar.jpg";
             if ($this->user->avatar) {
@@ -489,6 +503,11 @@ class FrontendUserProfile extends WireData implements Module {
         }
     }
 
+    /**
+     * Renders System Messages
+     *
+     * @return string
+     */
     public function ___getMessage($event) {
         $type = ($this->session->message_type == 'success') ? 'green' : 'red';
         if ($this->session->message_content) {
@@ -504,27 +523,36 @@ class FrontendUserProfile extends WireData implements Module {
         }
     }
 
+    /**
+     * Provides AJAX actions
+     *
+     * @return bool
+     */
     public function ___actionAjax() {
         if ($this->input->urlSegment1 == 'ajax') {
             if ($this->input->post->email) {
                 $email = $this->sanitizer->email($this->input->post->email);
                 if($this->users->get("email=$email")->name) {
-                    echo 'is already taken';
+                    echo 1;
                 } else {
-                    echo 'is not taken';
+                    echo 0;
                 }
             }
             if ($this->input->post->name) {
                 $name = $this->sanitizer->name($this->input->post->name);
                 if($this->users->get("name=$name")->name) {
-                    echo 'is already taken';
+                    echo 1;
                 } else {
-                    echo 'is not taken';
+                    echo 0;
                 }
             }
         }
     }
 
+    /**
+     *
+     * @todo Module install action
+     */
     public function ___install() {
 
         // Check that there are no required templates & fields already...
@@ -606,6 +634,10 @@ class FrontendUserProfile extends WireData implements Module {
 
     }
 
+    /**
+     *
+     * @todo Module uninstall action
+     */
     public function ___uninstall() {
 
         $role_page = $this->pages->get('name=registered');
@@ -634,6 +666,11 @@ class FrontendUserProfile extends WireData implements Module {
 
     }
 
+    /**
+     * Returns true if module already installed
+     *
+     * @return bool
+     */
     private function _checkInstall() {
 
         if($this->templates->get('fuserprofile'))

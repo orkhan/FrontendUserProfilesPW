@@ -7,7 +7,7 @@
 
 if($config->ajax) {
     $fup = $modules->get('FrontendUserProfile');
-    $fup->actionAjax(); // ajax action
+    $fup->actionAjax(); // ajax actions
     return;
 }
 
@@ -19,9 +19,9 @@ $fup->actionReset(); // reset action
 $fup->actionRegister(); // register action
 $fup->actionProfileEdit(); // profile edit action
 
-echo $fup->renderProfile();
-echo $fup->renderRegistrationForm();
-echo $fup->renderProfileEditForm();
+echo $fup->renderProfile(); // renders profile
+echo $fup->renderRegistrationForm(); // renders registration form
+echo $fup->renderProfileEditForm(); // renders profile edit form
 
 echo $page->body;
 
