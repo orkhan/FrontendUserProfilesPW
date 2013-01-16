@@ -1,7 +1,9 @@
 FrontendUserProfilesPW Installation & Configuration
 ---------------------------------------------------------------------------
 1. Upload all files & Install module
-2. Add *$fup = $modules->get('FrontendUserProfile');* at the beginning of file *head.inc*
+2. Add 
+	<pre><code>$fup = $modules->get('FrontendUserProfile');</code></pre>
+   at the beginning of file *head.inc*
 3. Add *if ($page->renderLogoutForm()) echo "<li>".$page->renderLogoutForm()."</li>";* after *echo "<li><a$class href='{$child->url}'>{$child->title}</a></li>"; \n }*
 4. Add *<?php if ($message = $page->getMessage()): ?>
                 <p style="color:<?php echo $message['type'] ?>;"><?php echo $message['content']; ?></p>
