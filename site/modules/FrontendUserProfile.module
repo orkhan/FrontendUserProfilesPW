@@ -348,7 +348,7 @@ class FrontendUserProfile extends WireData implements Module {
                 return regex.test(email);
             }
             </script>";
-            $profile_edit_form_html .= "<form action='/profile/edit/' method='post'>".
+            $profile_edit_form_html .= "<form action='/profile/edit/' method='post' enctype='multipart/form-data'>".
                 "    <p><label><b>Username:</b> ".$this->user->name."</label></p>".
                 "    <p><label><b>Email:</b> <input type='text' id='email' name='email' value='".$this->user->email."' /></label></p>".
                 "    <p><label><b>Fullname</b> <input type='text' name='fullname' value='".$this->user->fullname."' /></label></p>".
@@ -358,6 +358,7 @@ class FrontendUserProfile extends WireData implements Module {
 							<option value=\"1\">Male</option>
 							<option value=\"2\">Female</option>
 						</select></label></p>".
+                "<b>Avatar:</b> <input name=\"avatar\" type=\"file\" />".
                 "    <p>&nbsp;</p><p><label>change password?</b> <input type='checkbox' name='change_password' value='yes' /></label></p>".
                 "    <p><label><b>Password*</b> <input type='password' name='pass' /></label></p>".
                 "    <p><label><b>Repeat Password*</b> <input type='password' name='pass2' /></label></p>".
@@ -390,6 +391,17 @@ class FrontendUserProfile extends WireData implements Module {
             $this->user->birthdate = $birthdate . " 00:00:00";
             $this->user->gender = $gender;
 
+            $u = new WireUpload('avatar');
+            $u->setMaxFiles(1);
+            $u->setOverwrite(true);
+            $u->setDestinationPath($this->user->avatar->path());
+            $u->setValidExtensions(array('jpg', 'jpeg', 'gif', 'png'));
+
+            foreach($u->execute() as $filename) {
+                $this->user->avatar->removeAll();
+                $this->user->avatar->add($filename);
+            }
+
             if ($change_password) {
                 if ($pass == $pass2) {
                     $this->user->pass = $pass;
@@ -418,13 +430,15 @@ class FrontendUserProfile extends WireData implements Module {
 
     public function ___renderProfile() {
         if($this->user->isLoggedin() && !$this->input->urlSegment1) {
+            $avatar = "/site/templates/styles/images/no-avatar.jpg";
+            if ($this->user->avatar) {
+                $cropped_avatar = $this->user->avatar->first()->size(150);
+                $avatar = $cropped_avatar->url;
+            }
             $profile_html = "
             <h3>".$this->user->name."</h3>
             <div style='float:left;width:200px;'>
-                <div style='width: 180px;height: 40px;background: #222222;text-align: center;'>
-                    <p><img src='/site/templates/styles/images/logo.gif' /></p>
-                    <p>no avatar</p>
-                </div>
+                <p><img src='".$avatar."' /></p>
             </div>
             <div style='float:left;width:400px;'>
                 <p>Email: ".$this->user->email."</p>
@@ -441,6 +455,33 @@ class FrontendUserProfile extends WireData implements Module {
             }
 
             $profile_html .= "
+            </div>
+            ";
+
+            return $profile_html;
+        }
+
+        if($this->user->isLoggedin() && $this->input->urlSegment1 == 'info' && $this->sanitizer->name($this->input->urlSegment2)) {
+
+            $name = $this->sanitizer->name($this->input->urlSegment2);
+            $u = $this->users->get("name=$name");
+
+            $avatar = "/site/templates/styles/images/no-avatar.jpg";
+            if ($u->avatar) {
+                $cropped_avatar = $u->avatar->first()->size(150);
+                $avatar = $cropped_avatar->url;
+            }
+            $profile_html = "
+            <h3>".$u->name."</h3>
+            <div style='float:left;width:200px;'>
+                <p><img src='".$avatar."' /></p>
+            </div>
+            <div style='float:left;width:400px;'>
+                <p>Email: ".$u->email."</p>
+                <p>Fullname: ".$u->fullname."</p>
+                <p>Birthdate: ".date('Y-m-d',$u->birthdate)."</p>
+                <p>Gender: ".self::$gender[$u->gender]."</p>
+                <p>&nbsp;</p>
             </div>
             ";
 
@@ -507,7 +548,7 @@ class FrontendUserProfile extends WireData implements Module {
         $field_avatar->entityEncode = 1;
         $field_avatar->adminThumbs = 1;
         $field_avatar->inputfieldClass = "InputfieldImage";
-        $field_avatar->maxFiles = 0;
+        $field_avatar->maxFiles = 1;
         $field_avatar->descriptionRows = 1;
         $field_avatar->save();
 
