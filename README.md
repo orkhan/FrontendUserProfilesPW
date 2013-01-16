@@ -1,7 +1,7 @@
 FrontendUserProfilesPW Installation & Configuration
 ---------------------------------------------------------------------------
 1. Upload all files & Install module
-2. Open file /site/templates/head.inc
+2. Open file */site/templates/head.inc*
 3. Add 
 
 	<pre><code>$fup = $modules->get('FrontendUserProfile');</code></pre>
