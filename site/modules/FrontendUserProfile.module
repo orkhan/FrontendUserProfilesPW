@@ -685,9 +685,6 @@ class FrontendUserProfile extends WireData implements Module {
         if($this->fields->get('birthdate'))
             throw new WireException("There is already a field installed called 'birthdate'");
 
-        if($this->fields->get('birthdate'))
-            throw new WireException("There is already a field installed called 'birthdate'");
-
         return true;
     }
 	
